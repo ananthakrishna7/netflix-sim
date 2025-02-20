@@ -15,6 +15,8 @@ Netflix owns and operates its own private CDN. This is how it is able to reach c
 
 Netflix partners with ISPs around the globe through its Open Connect program. It installs its server racks at IXPs or Within ISPs.
 
+![[Pasted image 20250220144202.png]]
+
 ## Uploading a Video
 
 1. Before Netflix distributes content, it is first ingested and processed by the origin servers, which are hosts in the Amazon Cloud.
@@ -34,9 +36,17 @@ The Web Pages for browsing Netflix are stored in the Amazon Cloud.
 4. The client and server interact directly with DASH (a proprietary version of DASH)
 5. Client measures throughput, runs a rate determination algorithm and determines the quality of the next chunk to request.
 
-%% # Distributed System Concepts %%
+# Distributed System Concepts
+## Global Snapshot
+The system needs to know where each resource is located to generate a list of servers and select the best server for s specific client. Since the resources on the servers change dynamically, and hosts may fail, we need a Global Snapshot from time to time to keep track of resources. 
+## Mutual Exclusion
+Since Netflix has a distributed server on Amazon cloud, when one of the hosts is working with user data, the other hosts must not use it. Additionally changes here must be propagated to all hosts in case a distributed database is used. 
+## Leader Election
+Netflix has its own private CDN, so it has been able to optimize and simplify the software that runs on the CDN. All the compute intensive tasks run on the Amazon cloud, and the CDN handles only streaming. Hosts on the Amazon cloud are similar machines, hence there may be a need for leader election.
 
+# Our Implementation
+Since it would not be practical to simulate Netflix on a large scale, we plan to make all hosts the same, and run a leader election algorithm to elect a leader that coordinates our mini-CDN.
 
-
-
-[^1]: Netflix Open Connect Briefing Paper, 2021
+# Sources
+1. Netflix Open Connect Briefing Paper, 2021
+2. Computer Networks, A Top Down Approach, Eighth Edition, James F. Kurose and Keith W. Ross
