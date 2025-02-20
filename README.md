@@ -37,6 +37,12 @@ The Web Pages for browsing Netflix are stored in the Amazon Cloud.
 5. Client measures throughput, runs a rate determination algorithm and determines the quality of the next chunk to request.
 
 # Distributed System Concepts
+
+## Non Blocking Synchronous Communication
+The Amazon Server needs to communicate with the CDN and expects a reply for every message. But it would be wasteful for it to block when waiting for replies.
+
+## Middleware
+There does not seem to be an explicit middleware in the architecture, but content is created in various different formats to support multiple devices with different configurations. This can be thought of as converting 
 ## Global Snapshot
 The system needs to know where each resource is located to generate a list of servers and select the best server for s specific client. Since the resources on the servers change dynamically, and hosts may fail, we need a Global Snapshot from time to time to keep track of resources. 
 ## Mutual Exclusion
@@ -45,7 +51,18 @@ Since Netflix has a distributed server on Amazon cloud, when one of the hosts is
 Netflix has its own private CDN, so it has been able to optimize and simplify the software that runs on the CDN. All the compute intensive tasks run on the Amazon cloud, and the CDN handles only streaming. Hosts on the Amazon cloud are similar machines, hence there may be a need for leader election.
 
 # Our Implementation
-Since it would not be practical to simulate Netflix on a large scale, we plan to make all hosts the same, and run a leader election algorithm to elect a leader that coordinates our mini-CDN.
+
+Since it would not be practical to simulate Netflix on a large scale, we plan to treat all hosts homogeneously, and run a leader election algorithm to elect a leader that coordinates our mini-CDN, and handles administrative tasks. 
+
+We plan to implement this project in Go for the following reasons:
+1. Support for concurrency
+2. Support for HTTP servers
+3. Support for MPEG-DASH protocol (open source library on GitHub)
+
+We will implement the core features of the Netflix CDN:
+1. Leader selection - Admin server selected through Ring algorithm leader election (Other servers must redirect requests here). We select the Ring algorithm because we do not want the Admin server to change if a failed process with higher rank comes back online. We want to minimize leader switching.
+2. Global Snapshot Algorithm - We will implement the Chandy-Lamport Algorithm, because TCP guarantees reliable, in-order, error-checked delivery (TCP is the underlying Transport Layer Protocol for HTTP) and hence the network channel is a FIFO channel.
+3. File processing and distribution - Video is uploaded to Admin server, and Admin server converts it into different formats and quality. These are distributed throughout the CDN.
 
 # Sources
 1. Netflix Open Connect Briefing Paper, 2021
