@@ -1,0 +1,11 @@
+{{ define "content" }}
+<h1>Now Playing: {{ .Movie }}</h1>
+
+<video width="80%" controls>
+    <source src="/videos/{{ .Movie }}.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+</video>
+
+<br>
+<a href="/catalog" class="logout-button">Back to Catalog</a>
+{{ end }}

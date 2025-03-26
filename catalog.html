@@ -1,0 +1,29 @@
+{{ define "content" }}
+<h1>Movie Catalog</h1>
+<p>Select a movie to watch</p>
+
+<div class="movie-container">
+    <div class="movie-card">
+        <a href="/player?movie=Avengers.mp4">
+            <img src="/thumbnails/avengers.jpeg" alt="Avengers">
+            <div class="overlay">Avengers</div>
+        </a>
+    </div>
+
+    <div class="movie-card">
+        <a href="/player?movie=Spiderman.mp4">
+            <img src="/thumbnails/spiderman.jpeg" alt="Spiderman">
+            <div class="overlay">Spiderman</div>
+        </a>
+    </div>
+
+    <div class="movie-card">
+        <a href="/player?movie=Bluelock.mp4">
+            <img src="/thumbnails/Bluelock.jpeg" alt="Bluelock">
+            <div class="overlay">Bluelock</div>
+        </a>
+    </div>
+</div>
+
+<a href="/logout" class="logout-button">Logout</a>
+{{ end }}

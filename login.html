@@ -1,0 +1,14 @@
+{{ define "content" }}
+<div class="login-container">
+    <h1 class="netflux-heading">NETFLUX</h1>
+    <p class="tagline">Your Ultimate Movie Experience</p>
+
+    <form method="POST" action="/login" class="login-form">
+        <input type="text" name="username" placeholder="Username" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <button type="submit">Log In</button>
+    </form>
+
+    <p class="footer-text">Enjoy unlimited movies anytime, anywhere.</p>
+</div>
+{{ end }}
