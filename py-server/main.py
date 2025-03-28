@@ -17,13 +17,13 @@ def main():
     peer = Peer('localhost', sock, peerlist) # other joining peers will be added to end of list
     peer.start()
     # st = input("Press any key to initiate leader election: ")
-    if pid == 0: peer.initiate_leader_election()
-    print(LEADER)
+    # if pid == 0: peer.initiate_leader_election()
+    print(peer.leader)
+    if pid == peer.leader:
+        print(f"Process {pid}: Starting admin server...")
     peer.end()
 
-    if pid == LEADER:
-        print(f"Process {pid}: Starting admin server...")
-
+    
     
 
 if __name__ == '__main__':

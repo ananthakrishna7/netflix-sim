@@ -1,42 +1,16 @@
-from os import wait
 import socket
 import threading
 LEADER=0
-server_buffer = []
+ELECTION=False
 '''Ports 9000 through 9004 are reserved for leader election'''
-# def leader_election(pid: int, sock: int)-> None:
-#     print("Leader election initiated. Sending ELECTION MESSAGES")
-#     server = socket(AF_INET, SOCK_STREAM)
-#     server.bind(('localhost', sock))
-#     server.listen(1)
-#     senderSocket = socket(AF_INET, SOCK_STREAM)
-#     senderSocket.send(f"ELECTION::{pid}".encode())
-#     clientSocket, addr = server.accept()
-#     senderSocket.connect(('localhost', 9000 + (sock + 1)%5)) # next member in the ring
-#     data = clientSocket.recv(30).decode()
-
-#     splitted = data.split("::")
-#     if splitted[0] == "ELECTION":
-#         print("Received ELECTION message.")
-#         if str(pid) in splitted[1].split(","):
-#             print(f"{pid}: I am the leader")
-#             LEADER=True
-#             print("Sending COORDINATOR message")
-#             senderSocket.send(f"COORDINATOR::{pid}".encode())
-#             return 0 # success
-#         print("Passing to next member") # tcp so ack is taken care of
-#         senderSocket.send((data + ',' + str(pid)).encode())
-#     elif splitted[0] == "COORDINATOR":
-#         print(f"{pid}: Received COORDINATOR message.")
-#         print(splitted[1] + " is the leader.")
-
 class Peer:
     def __init__(self, host, port, peers):
         self.host = host
         self.port = port
         self.pid = port - 9000
         self.peers = peers  # Stores known peer addresses
-        
+        self.leader = 0
+        self.election = False
         # Create a socket
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.bind((self.host, self.port))
@@ -94,6 +68,7 @@ class Peer:
             return False
         
     def initiate_leader_election(self):
+        self.election = True
         print(f"{self.pid}:Leader election initiated. Sending ELECTION MESSAGES")
         for peer in self.peers:
             try:
@@ -112,8 +87,7 @@ class Peer:
         else: # worst case scenario
             print("No peers available to send message to.")
             print(f"Process {self.pid}: I am the leader")
-            global LEADER
-            LEADER=self.pid
+            self.leader=self.pid
             # no need to send coordinator messages
             # print("Sending COORDINATOR message")
 
@@ -139,8 +113,8 @@ class Peer:
         contents = [int(i) for i in contents]
         if self.pid in contents:
             print(f"Process {self.pid}: I am the leader")
-            global LEADER
-            LEADER=self.pid
+            self.leader=self.pid
+            self.election=False
             print(f"{self.pid}: Sending COORDINATOR message")
             self.broadcast_message(f"COORDINATOR::{self.pid}")
         else:
@@ -150,15 +124,25 @@ class Peer:
     def handle_coordinator_message(self, message):
         """ Receives a coordinator message from the leader. """
         print(f"Received COORDINATOR message from {message}")
-        global LEADER
-        LEADER=int(message)
+        self.leader=int(message)
+        self.election=False
 
     def start(self):
         """ Starts the peer's listening thread. """
         self.thread = threading.Thread(target=self.receive_messages, daemon=True)
         self.thread.start()
         print(f"Peer started at {self.host}:{self.port}")
+        # if self.pid == 0: self.initiate_leader_election() # uncomment to quickly show election
+        while not self.election: self.heartbeat()
+        # leader should have been selected
         # thread.join()
+
+    def heartbeat(self):
+        self.send_message("HEARTBEAT", ('localhost', 9000 + self.leader))
+        if self.wait_for_ack(self.leader):
+            pass
+        else:
+            self.initiate_leader_election()
 
     def end(self):
         self.thread.join()
