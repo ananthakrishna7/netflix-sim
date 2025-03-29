@@ -15,7 +15,9 @@ def main():
         peerlist.append(('localhost', 9000 + i))
         i = (i + 1)%5
     peer = Peer('localhost', sock, peerlist) # other joining peers will be added to end of list
+    print(peer.resources)
     peer.start()
+    if peer.pid == 0: peer.initiate_global_snapshot()
     # st = input("Press any key to initiate leader election: ")
     # if pid == 0: peer.initiate_leader_election()
     print(peer.leader)
