@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"os/exec"
@@ -21,14 +22,51 @@ func headers(w http.ResponseWriter, req *http.Request) {
 
 func index(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(w, "You have reached the index page. I haven't done anything here. Go to /hello or /headers :P\n")
+	// http.
+}
+
+func uploadFile(w http.ResponseWriter, req *http.Request) {
+	fmt.Fprint(w, "Uploading file\n")
+	req.ParseMultipartForm(50 << 20) // 50 mb
+
+	file, handler, err := req.FormFile("videoFile")
+	if err != nil {
+		fmt.Println("Error getting video")
+		fmt.Println(err)
+		return
+	}
+	defer file.Close() // will close file when func returns... whoa
+	fmt.Printf("Uploaded File: %+v\n", handler.Filename)
+	fmt.Printf("File Size: %+v\n", handler.Size)
+	fmt.Printf("MIME Header: %+v\n", handler.Header)
+
+	// next step, make chunks and make those persistent. can discard original. i think. maybe. :O
+
+	tempFile, err := os.CreateTemp("temp-files", "upload-*.mp4") // should change the format to accept more filetypes
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer tempFile.Close()
+
+	fileBytes, err := io.ReadAll(file)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	tempFile.Write(fileBytes)
+
+	fmt.Fprintf(w, "Successfully uploaded File\n")
+
 }
 
 func main() {
-	http.HandleFunc("/", index)
+
+	fs := http.FileServer(http.Dir("./static"))
+	http.Handle("/", fs)
 	http.HandleFunc("/hello", hello)
 	http.HandleFunc("/headers", headers)
-	fmt.Println(os.Getwd())
-	// video_split("video1.mp4", "videos")
+	http.HandleFunc("/upload", uploadFile)
 	http.ListenAndServe(":8090", nil)
 }
 
